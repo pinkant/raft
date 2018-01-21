@@ -66,14 +66,14 @@ Server 5001 - The 5005 is committed at 1:2.
 The servers are started as background bash jobs. To stop them either kill all background jobs or execute `killall python`.
 
 
-The project structure:
-server.py - A protocol agnostic implementation of the Raft server.
-client.py - A protocol agnostic implementation of the Raft client.
-timeouts.py - Timeouts constant used by the Raft clients and servers.
-log.py - An implementation of the Raft log. Which is used by the Raft server.
-http_raft.py - An implementation of the Raft server transport as Flask HTTP server, and the Raft client as an HTTP client.
-client_test.py - A test which initializes a Raft client and send a couple of messages to the Raft cluster.
-servers - A list of ports on which the Raft servers should start. It should match the list of servers started by run_tests.sh.
-run_tests.sh - Starts a Raft cluster and runs a client test.
-requirements.txt - A list of Python project dependencies.
+The project structure:  
+server.py - A protocol agnostic implementation of the Raft server.  
+client.py - A protocol agnostic implementation of the Raft client.  
+timeouts.py - Timeouts constant used by the Raft clients and servers.  
+log.py - An implementation of the Raft log. Which is used by the Raft server.  
+http_raft.py - An implementation of the Raft server transport as Flask HTTP server, and the Raft client as an HTTP client.  
+client_test.py - A test which initializes a Raft client and send a couple of messages to the Raft cluster.  
+servers - A list of ports on which the Raft servers should start. It should match the list of servers started by run_tests.sh.  
+run_tests.sh - Starts a Raft cluster and runs a client test.  
+requirements.txt - A list of Python project dependencies.  
 

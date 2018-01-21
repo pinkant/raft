@@ -95,6 +95,7 @@ class Server:
         self.talked_to_leader = True
         self.leader_id = request['leaderId']
         self.current_term = request['term']
+        self.voted_for = None
 
         if not self.log.sync_at_item(request['prevLogIndex'], request['prevLogTerm']):
             self.logger.info(f"Refusing append request from {request['leaderId']} because "
@@ -135,18 +136,17 @@ class Server:
                              f"because already voted for {self.voted_for}.")
             return result
 
-        candidate_last_log_index = request['lastLogIndex']
-        if self.log.len() > candidate_last_log_index:
-            self.logger.info(f"Rejected vote request from {candidate_id} because its last index "
-                             f"{candidate_last_log_index} is smaller the length current index {self.log.len()}.")
-            return result
-
         candidate_last_log_term = request['lastLogTerm']
+        candidate_last_log_index = request['lastLogIndex']
         last_term = self.log.get_item_term(self.log.len())
         if last_term > candidate_last_log_term:
             self.logger.info(f"Rejected vote request from {candidate_id} because its term "
                              f"{candidate_last_log_term} is smaller than the current last term "
                              f"{last_term}.")
+            return result
+        elif self.log.len() > candidate_last_log_index:
+            self.logger.info(f"Rejected vote request from {candidate_id} because its last index "
+                             f"{candidate_last_log_index} is smaller the length current index {self.log.len()}.")
             return result
 
         self.voted_for = candidate_id
@@ -174,6 +174,7 @@ class Server:
         while True:
             # Wrap the server index to the first element if the index
             # was increased beyond the lest element.
+            # This way the loop will keep going until enough servers will commit the entry.
             server_index = server_index % len(self.servers)
             server = self.servers[server_index]
             next_index = self.append_entry_to_follower(server)
@@ -214,6 +215,8 @@ class Server:
                         next_index = self.append_entry_to_follower(server)
                         if not next_index or next_index > self.log.len():
                             break
+                # Poor man way to guaranty that the all heartbeats are finished in time.
+                # ToDo Replace with parallel requests and add a timer which cancels them if they are not done in time.
                 timeout = random.uniform(timeouts.MIN_VOTING / 4.0, timeouts.MIN_VOTING / 2.0)
             else:
                 # If not a leader wait until woken up after winning an election.
@@ -254,6 +257,9 @@ class Server:
                         'lastLogIndex': last_log_index,
                         'lastLogTerm': last_log_term
                     },
+                    # Poor man way to guaranty that the all votes are finished in time.
+                    # ToDo Replace with parallel requests and add a timer which cancels them
+                    # if they are not done in time.
                     timeouts.MIN_VOTING / len(self.servers),
                     self.logger
                 )
@@ -263,6 +269,8 @@ class Server:
 
                 self.check_response_term(vote)
 
+                # Can happen because either the response had a higher term
+                # or if the server got contacted by a newly elected leader.
                 if self.role == Role.FOLLOWER:
                     self.logger.info(f"Canceling voting because {self.leader_id} became a leader.")
                     break

@@ -33,6 +33,7 @@ class Log:
         :param term: The term of an element in the leader server log.
         :return: True if the log contains an item with the same term at a given index, otherwise False.
         """
+        # ToDo Add logic that ignores a new item if it is already in the log.
         if self.len() < index:
             self.logger.info(f"Responding to the server that the logs are not in sync because "
                              f"the log does not contain an entry at {index} index.")
