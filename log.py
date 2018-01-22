@@ -19,6 +19,7 @@ class Log:
         :param entry: The log entry.
         :return: The log index of the added entry.
         """
+        # ToDo Add logic that ignores a new item if it is already in the log.
         self.log.append(LogEntry(term, entry))
         return len(self.log)
 
@@ -33,7 +34,6 @@ class Log:
         :param term: The term of an element in the leader server log.
         :return: True if the log contains an item with the same term at a given index, otherwise False.
         """
-        # ToDo Add logic that ignores a new item if it is already in the log.
         if self.len() < index:
             self.logger.info(f"Responding to the server that the logs are not in sync because "
                              f"the log does not contain an entry at {index} index.")
@@ -46,6 +46,7 @@ class Log:
             # Only tell it to try again if there is something else
             # in the log that can conflict.
             return self.len() == 0
+        self.log = self.log[:index]
         return True
 
     def len(self):
